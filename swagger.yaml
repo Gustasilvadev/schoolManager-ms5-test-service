@@ -1,0 +1,890 @@
+openapi: 3.0.0
+info:
+  title: API do EduGestor - TestService
+  description: |
+    Serviço de Gestão de Avaliações (Testes), Notas e Médias Finais.
+    Apenas administradores e professores autenticados podem acessar os endpoints.
+  version: 1.0.0
+  contact:
+    name: Suporte EduGestor
+    email: suporte@edugestor.com
+
+servers:
+  - url: http://localhost:3005/api
+    description: Servidor de Desenvolvimento
+
+tags:
+  - name: Health
+    description: Verificação de saúde do serviço
+  - name: Tests
+    description: CRUD de avaliações (testes)
+  - name: Grades
+    description: CRUD de notas, lançamento em lote
+  - name: FinalAverages
+    description: CRUD de médias finais, cálculo automático
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Test:
+      type: object
+      properties:
+        test_id:
+          type: integer
+          example: 1
+        test_type:
+          type: string
+          example: "Prova"
+        test_description:
+          type: string
+          example: "Prova de Matemática"
+        class_discipline_id:
+          type: integer
+          example: 10
+        test_status:
+          type: integer
+          enum: [0, 1, 2]
+          example: 1
+
+    Grade:
+      type: object
+      properties:
+        grade_id:
+          type: integer
+          example: 1
+        grade_value:
+          type: number
+          format: float
+          example: 8.5
+        test_id:
+          type: integer
+          example: 1
+        student_id:
+          type: integer
+          example: 5
+        grade_status:
+          type: integer
+          enum: [0, 1, 2]
+          example: 1
+
+    FinalAverage:
+      type: object
+      properties:
+        final_average_id:
+          type: integer
+          example: 1
+        final_average_value:
+          type: number
+          format: float
+          example: 7.8
+        student_id:
+          type: integer
+          example: 5
+        class_discipline_id:
+          type: integer
+          example: 10
+        final_average_status:
+          type: integer
+          enum: [0, 1, 2]
+          example: 1
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+
+    ListTestsResponse:
+      type: object
+      properties:
+        tests:
+          type: array
+          items:
+            $ref: '#/components/schemas/Test'
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+
+    ListGradesResponse:
+      type: object
+      properties:
+        grades:
+          type: array
+          items:
+            $ref: '#/components/schemas/Grade'
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+
+    ListFinalAveragesResponse:
+      type: object
+      properties:
+        averages:
+          type: array
+          items:
+            $ref: '#/components/schemas/FinalAverage'
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+
+paths:
+  # ==================== HEALTH ====================
+  /health:
+    get:
+      tags:
+        - Health
+      summary: Verifica saúde do serviço
+      responses:
+        '200':
+          description: Serviço operacional
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "OK"
+                  service:
+                    type: string
+                    example: "test-service"
+
+  # ==================== TESTS (AVALIAÇÕES) ====================
+  /tests/listTests:
+    get:
+      tags:
+        - Tests
+      summary: Lista avaliações com paginação e filtros
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+        - name: test_type
+          in: query
+          schema:
+            type: string
+        - name: test_status
+          in: query
+          schema:
+            type: integer
+            enum: [0, 1, 2]
+        - name: class_discipline_id
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Lista de avaliações
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListTestsResponse'
+        '401':
+          description: Token inválido
+        '403':
+          description: Acesso negado
+
+  /tests/listTestById/{id}:
+    get:
+      tags:
+        - Tests
+      summary: Busca avaliação por ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Dados da avaliação
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Test'
+        '404':
+          description: Avaliação não encontrada
+
+  /tests/class-discipline/{classDisciplineId}:
+    get:
+      tags:
+        - Tests
+      summary: Busca avaliações por disciplina/turma
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: classDisciplineId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Lista de avaliações
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Test'
+        '404':
+          description: Disciplina/turma não encontrada
+
+  /tests/createTest:
+    post:
+      tags:
+        - Tests
+      summary: Cria uma nova avaliação
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - test_type
+                - test_description
+                - class_discipline_id
+              properties:
+                test_type:
+                  type: string
+                  maxLength: 45
+                  example: "Prova"
+                test_description:
+                  type: string
+                  maxLength: 45
+                  example: "Prova de Matemática"
+                class_discipline_id:
+                  type: integer
+                  example: 10
+                test_status:
+                  type: integer
+                  default: 1
+                  enum: [0, 1, 2]
+      responses:
+        '201':
+          description: Avaliação criada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Test'
+        '400':
+          description: Dados inválidos
+
+  /tests/updateTestById/{id}:
+    put:
+      tags:
+        - Tests
+      summary: Atualiza uma avaliação
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                test_type:
+                  type: string
+                test_description:
+                  type: string
+                class_discipline_id:
+                  type: integer
+                test_status:
+                  type: integer
+                  enum: [0, 1, 2]
+      responses:
+        '200':
+          description: Avaliação atualizada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Test'
+        '404':
+          description: Avaliação não encontrada
+
+  /tests/deleteTestById/{id}:
+    delete:
+      tags:
+        - Tests
+      summary: Exclusão lógica da avaliação
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Avaliação desativada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '404':
+          description: Avaliação não encontrada
+
+  # ==================== GRADES (NOTAS) ====================
+  /grades/listGrades:
+    get:
+      tags:
+        - Grades
+      summary: Lista notas com paginação e filtros
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+        - name: test_id
+          in: query
+          schema:
+            type: integer
+        - name: student_id
+          in: query
+          schema:
+            type: integer
+        - name: grade_status
+          in: query
+          schema:
+            type: integer
+            enum: [0, 1, 2]
+      responses:
+        '200':
+          description: Lista de notas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListGradesResponse'
+
+  /grades/listGradeById/{id}:
+    get:
+      tags:
+        - Grades
+      summary: Busca nota por ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Dados da nota
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Grade'
+        '404':
+          description: Nota não encontrada
+
+  /grades/test/{testId}:
+    get:
+      tags:
+        - Grades
+      summary: Lista notas por avaliação
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: testId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Lista de notas da avaliação
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Grade'
+
+  /grades/student/{studentId}:
+    get:
+      tags:
+        - Grades
+      summary: Lista notas por aluno
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Lista de notas do aluno
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Grade'
+
+  /grades/createGrade:
+    post:
+      tags:
+        - Grades
+      summary: Lança uma nota para um aluno em uma avaliação
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - grade_value
+                - test_id
+                - student_id
+              properties:
+                grade_value:
+                  type: number
+                  format: float
+                  minimum: 0
+                  maximum: 10
+                  example: 8.5
+                test_id:
+                  type: integer
+                  example: 1
+                student_id:
+                  type: integer
+                  example: 5
+                grade_status:
+                  type: integer
+                  default: 1
+                  enum: [0, 1, 2]
+      responses:
+        '201':
+          description: Nota lançada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Grade'
+        '400':
+          description: Nota já existe ou dados inválidos
+        '404':
+          description: Avaliação não encontrada
+
+  /grades/bulkCreateGrades:
+    post:
+      tags:
+        - Grades
+      summary: Lança múltiplas notas de uma vez (matriz de notas)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - grades
+              properties:
+                grades:
+                  type: array
+                  minItems: 1
+                  items:
+                    type: object
+                    required:
+                      - grade_value
+                      - test_id
+                      - student_id
+                    properties:
+                      grade_value:
+                        type: number
+                        format: float
+                        minimum: 0
+                        maximum: 10
+                      test_id:
+                        type: integer
+                      student_id:
+                        type: integer
+      responses:
+        '201':
+          description: Notas lançadas
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  count:
+                    type: integer
+        '400':
+          description: Dados inválidos
+        '404':
+          description: Avaliação não encontrada
+
+  /grades/updateGradeById/{id}:
+    put:
+      tags:
+        - Grades
+      summary: Atualiza uma nota
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                grade_value:
+                  type: number
+                  format: float
+                  minimum: 0
+                  maximum: 10
+                test_id:
+                  type: integer
+                student_id:
+                  type: integer
+                grade_status:
+                  type: integer
+                  enum: [0, 1, 2]
+      responses:
+        '200':
+          description: Nota atualizada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Grade'
+        '404':
+          description: Nota não encontrada
+
+  /grades/deleteGradeById/{id}:
+    delete:
+      tags:
+        - Grades
+      summary: Exclusão lógica da nota
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Nota desativada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '404':
+          description: Nota não encontrada
+
+  # ==================== FINAL AVERAGES (MÉDIAS FINAIS) ====================
+  /final-averages/listFinalAverages:
+    get:
+      tags:
+        - FinalAverages
+      summary: Lista médias finais com paginação e filtros
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+        - name: student_id
+          in: query
+          schema:
+            type: integer
+        - name: class_discipline_id
+          in: query
+          schema:
+            type: integer
+        - name: final_average_status
+          in: query
+          schema:
+            type: integer
+            enum: [0, 1, 2]
+      responses:
+        '200':
+          description: Lista de médias finais
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListFinalAveragesResponse'
+
+  /final-averages/listFinalAverageById/{id}:
+    get:
+      tags:
+        - FinalAverages
+      summary: Busca média final por ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Dados da média final
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FinalAverage'
+        '404':
+          description: Média final não encontrada
+
+  /final-averages/student/{studentId}:
+    get:
+      tags:
+        - FinalAverages
+      summary: Lista médias finais por aluno
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Lista de médias finais do aluno
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FinalAverage'
+
+  /final-averages/class-discipline/{classDisciplineId}:
+    get:
+      tags:
+        - FinalAverages
+      summary: Lista médias finais por disciplina/turma
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: classDisciplineId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Lista de médias finais da disciplina/turma
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FinalAverage'
+
+  /final-averages/createFinalAverage:
+    post:
+      tags:
+        - FinalAverages
+      summary: Cria uma média final manualmente
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - final_average_value
+                - student_id
+                - class_discipline_id
+              properties:
+                final_average_value:
+                  type: number
+                  format: float
+                  minimum: 0
+                  maximum: 10
+                  example: 7.8
+                student_id:
+                  type: integer
+                  example: 5
+                class_discipline_id:
+                  type: integer
+                  example: 10
+                final_average_status:
+                  type: integer
+                  default: 1
+                  enum: [0, 1, 2]
+      responses:
+        '201':
+          description: Média final criada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FinalAverage'
+        '400':
+          description: Média já existe ou dados inválidos
+
+  /final-averages/calculate/{studentId}/{classDisciplineId}:
+    post:
+      tags:
+        - FinalAverages
+      summary: Calcula e cria/atualiza a média final automaticamente com base nas notas lançadas
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: classDisciplineId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '201':
+          description: Média final calculada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FinalAverage'
+        '400':
+          description: Não há notas lançadas para calcular
+        '404':
+          description: Aluno ou disciplina/turma não encontrada
+
+  /final-averages/updateFinalAverageById/{id}:
+    put:
+      tags:
+        - FinalAverages
+      summary: Atualiza uma média final
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                final_average_value:
+                  type: number
+                  format: float
+                  minimum: 0
+                  maximum: 10
+                student_id:
+                  type: integer
+                class_discipline_id:
+                  type: integer
+                final_average_status:
+                  type: integer
+                  enum: [0, 1, 2]
+      responses:
+        '200':
+          description: Média final atualizada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FinalAverage'
+        '404':
+          description: Média final não encontrada
+
+  /final-averages/deleteFinalAverageById/{id}:
+    delete:
+      tags:
+        - FinalAverages
+      summary: Exclusão lógica da média final
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Média final desativada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '404':
+          description: Média final não encontrada
