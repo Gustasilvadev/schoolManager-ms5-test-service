@@ -1,0 +1,36 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model final_average {
+  final_average_id     Int   @id @default(autoincrement())
+  final_average_value  Float @db.Float
+  student_id           Int
+  class_discipline_id  Int
+  final_average_status Int
+}
+
+model grades {
+  grade_id     Int   @id
+  grade_value  Float @db.Float
+  test_id      Int
+  student_id   Int
+  grade_status Int
+  tests        tests @relation(fields: [test_id], references: [test_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_grades_key_1")
+
+  @@index([test_id], map: "fk_grades_key_1_idx")
+}
+
+model tests {
+  test_id             Int      @id @default(autoincrement())
+  test_type           String   @db.VarChar(45)
+  test_description    String   @db.VarChar(45)
+  class_discipline_id Int
+  test_status         Int
+  grades              grades[]
+}
