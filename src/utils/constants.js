@@ -15,8 +15,8 @@ module.exports = {
     DELETED: 2
   },
   ROLES: {
-    ADMIN: 'ADMIN',
-    TEACHER: 'TEACHER'
+    ADMIN: 'Administrador',
+    TEACHER: 'Professor'
   },
   HTTP_STATUS: {
     OK: 200,

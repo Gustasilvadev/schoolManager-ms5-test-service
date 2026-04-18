@@ -8,8 +8,16 @@ const createGrade = async (data) => {
 
   const existing = await gradeRepo.findByStudentAndTest(data.student_id, data.test_id);
   if (existing) throw new Error(MESSAGES.GRADE_ALREADY_EXISTS);
-
-  const newGrade = await gradeRepo.create(data);
+  let gradeValue = data.grade_value;
+  if (typeof gradeValue === 'string') {
+    gradeValue = parseFloat(gradeValue.replace(',', '.'));
+  }
+  const newGrade = await gradeRepo.create({
+    grade_value: gradeValue,
+    test_id: data.test_id,
+    student_id: data.student_id,
+    grade_status: data.grade_status !== undefined ? data.grade_status : 1
+  });
   return newGrade;
 };
 
@@ -20,7 +28,20 @@ const bulkCreateGrades = async (gradesData) => {
     if (!test) throw new Error(`Avaliação com ID ${testId} não encontrada`);
   }
 
-  const result = await gradeRepo.bulkCreate(gradesData);
+  const enrichedData = gradesData.map(grade => {
+    let gradeValue = grade.grade_value;
+    if (typeof gradeValue === 'string') {
+      gradeValue = parseFloat(gradeValue.replace(',', '.'));
+    }
+    return {
+      grade_value: gradeValue,
+      test_id: grade.test_id,
+      student_id: grade.student_id,
+      grade_status: grade.grade_status !== undefined ? grade.grade_status : 1
+    };
+  });
+
+  const result = await gradeRepo.bulkCreate(enrichedData);
   return result;
 };
 
@@ -57,9 +78,19 @@ const getGradesByStudent = async (studentId) => {
 const updateGrade = async (id, updateData) => {
   const existing = await gradeRepo.findById(id);
   if (!existing) throw new Error(MESSAGES.GRADE_NOT_FOUND);
+
+  if (updateData.grade_value !== undefined) {
+    let gradeValue = updateData.grade_value;
+    if (typeof gradeValue === 'string') {
+      gradeValue = parseFloat(gradeValue.replace(',', '.'));
+    }
+    updateData.grade_value = gradeValue;
+  }
+
   const updated = await gradeRepo.update(id, updateData);
   return updated;
 };
+
 
 const deleteGrade = async (id) => {
   const existing = await gradeRepo.findById(id);

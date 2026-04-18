@@ -15,7 +15,7 @@ router.use(roleMiddleware(['ADMIN', 'TEACHER']));
 // Rotas de avaliações (testes)
 router.get('/listTests', testController.getAllTests);
 router.get('/listTestById/:id', testController.getTestById);
-router.get('/class-discipline/:classDisciplineId', testController.getTestsByClassDiscipline);
+router.get('/classDiscipline/:classDisciplineId', testController.getTestsByClassDiscipline);
 router.post('/createTest', validateCreateTest, testController.createTest);
 router.put('/updateTestById/:id', validateUpdateTest, testController.updateTest);
 router.delete('/deleteTestById/:id', testController.deleteTest);
