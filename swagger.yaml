@@ -230,7 +230,7 @@ paths:
         '404':
           description: Avaliação não encontrada
 
-  /tests/class-discipline/{classDisciplineId}:
+  /tests/classDiscipline/{classDisciplineId}:
     get:
       tags:
         - Tests
@@ -639,7 +639,7 @@ paths:
           description: Nota não encontrada
 
   # ==================== FINAL AVERAGES (MÉDIAS FINAIS) ====================
-  /final-averages/listFinalAverages:
+  /finalAverages/listFinalAverages:
     get:
       tags:
         - FinalAverages
@@ -678,7 +678,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ListFinalAveragesResponse'
 
-  /final-averages/listFinalAverageById/{id}:
+  /finalAverages/listFinalAverageById/{id}:
     get:
       tags:
         - FinalAverages
@@ -701,7 +701,7 @@ paths:
         '404':
           description: Média final não encontrada
 
-  /final-averages/student/{studentId}:
+  /finalAverages/student/{studentId}:
     get:
       tags:
         - FinalAverages
@@ -724,7 +724,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/FinalAverage'
 
-  /final-averages/class-discipline/{classDisciplineId}:
+  /finalAverages/class-discipline/{classDisciplineId}:
     get:
       tags:
         - FinalAverages
@@ -747,7 +747,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/FinalAverage'
 
-  /final-averages/createFinalAverage:
+  /finalAverages/createFinalAverage:
     post:
       tags:
         - FinalAverages
@@ -791,7 +791,7 @@ paths:
         '400':
           description: Média já existe ou dados inválidos
 
-  /final-averages/calculate/{studentId}/{classDisciplineId}:
+  /finalAverages/calculate/{studentId}/{classDisciplineId}:
     post:
       tags:
         - FinalAverages
@@ -821,7 +821,7 @@ paths:
         '404':
           description: Aluno ou disciplina/turma não encontrada
 
-  /final-averages/updateFinalAverageById/{id}:
+  /finalAverages/updateFinalAverageById/{id}:
     put:
       tags:
         - FinalAverages
@@ -863,7 +863,7 @@ paths:
         '404':
           description: Média final não encontrada
 
-  /final-averages/deleteFinalAverageById/{id}:
+  /finalAverages/deleteFinalAverageById/{id}:
     delete:
       tags:
         - FinalAverages
