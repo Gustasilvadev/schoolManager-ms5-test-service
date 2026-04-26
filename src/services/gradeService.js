@@ -1,10 +1,20 @@
 const gradeRepo = require('../repositories/gradeRepository');
 const testRepo = require('../repositories/testRepository');
-const { GRADE_STATUS, MESSAGES } = require('../utils/constants');
+const { checkTeacherAccess } = require('../utils/classesClient');
+const { GRADE_STATUS, MESSAGES, ROLES } = require('../utils/constants');
 
-const createGrade = async (data) => {
+const ensureTeacherOwnsTest = async (currentUser, test) => {
+  if (!currentUser || currentUser.role !== ROLES.TEACHER) return;
+  if (!currentUser.teacher_id) throw new Error(MESSAGES.FORBIDDEN);
+  const allowed = await checkTeacherAccess(currentUser.teacher_id, test.class_discipline_id);
+  if (!allowed) throw new Error(MESSAGES.FORBIDDEN);
+};
+
+const createGrade = async (data, currentUser = null) => {
   const test = await testRepo.findById(data.test_id);
   if (!test) throw new Error(MESSAGES.TEST_NOT_FOUND);
+
+  await ensureTeacherOwnsTest(currentUser, test);
 
   const existing = await gradeRepo.findByStudentAndTest(data.student_id, data.test_id);
   if (existing) throw new Error(MESSAGES.GRADE_ALREADY_EXISTS);
@@ -21,11 +31,17 @@ const createGrade = async (data) => {
   return newGrade;
 };
 
-const bulkCreateGrades = async (gradesData) => {
+const bulkCreateGrades = async (gradesData, currentUser = null) => {
   const testIds = [...new Set(gradesData.map(g => g.test_id))];
+  const tests = [];
   for (const testId of testIds) {
     const test = await testRepo.findById(testId);
     if (!test) throw new Error(`Avaliação com ID ${testId} não encontrada`);
+    tests.push(test);
+  }
+
+  for (const test of tests) {
+    await ensureTeacherOwnsTest(currentUser, test);
   }
 
   const enrichedData = gradesData.map(grade => {
@@ -75,9 +91,13 @@ const getGradesByStudent = async (studentId) => {
   return grades;
 };
 
-const updateGrade = async (id, updateData) => {
+const updateGrade = async (id, updateData, currentUser = null) => {
   const existing = await gradeRepo.findById(id);
   if (!existing) throw new Error(MESSAGES.GRADE_NOT_FOUND);
+
+  const test = await testRepo.findById(existing.test_id);
+  if (!test) throw new Error(MESSAGES.TEST_NOT_FOUND);
+  await ensureTeacherOwnsTest(currentUser, test);
 
   if (updateData.grade_value !== undefined) {
     let gradeValue = updateData.grade_value;
@@ -91,10 +111,13 @@ const updateGrade = async (id, updateData) => {
   return updated;
 };
 
-
-const deleteGrade = async (id) => {
+const deleteGrade = async (id, currentUser = null) => {
   const existing = await gradeRepo.findById(id);
   if (!existing) throw new Error(MESSAGES.GRADE_NOT_FOUND);
+
+  const test = await testRepo.findById(existing.test_id);
+  if (test) await ensureTeacherOwnsTest(currentUser, test);
+
   await gradeRepo.softDelete(id);
   return true;
 };

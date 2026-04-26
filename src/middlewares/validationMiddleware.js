@@ -9,6 +9,14 @@ const validate = (req, res, next) => {
   next();
 };
 
+// Aceita número ou string (com vírgula ou ponto) e valida intervalo [0, 10]
+const isGradeValue = (value) => {
+  const num = typeof value === 'string' ? parseFloat(value.replace(',', '.')) : parseFloat(value);
+  if (isNaN(num)) throw new Error('Nota deve ser um número');
+  if (num < 0 || num > 10) throw new Error('Nota deve estar entre 0 e 10');
+  return true;
+};
+
 // ---------- Testes (avaliações) ----------
 const validateCreateTest = [
   body('test_type')
@@ -45,7 +53,7 @@ const validateUpdateTest = [
 // ---------- Notas (grades) ----------
 const validateCreateGrade = [
   body('grade_value')
-    .isFloat({ min: 0, max: 10 }).withMessage('Nota deve estar entre 0 e 10'),
+    .custom(isGradeValue),
   body('test_id')
     .isInt({ min: 1 }).withMessage('ID da avaliação é obrigatório'),
   body('student_id')
@@ -60,7 +68,7 @@ const validateUpdateGrade = [
   param('id').isInt({ min: 1 }).withMessage('ID inválido'),
   body('grade_value')
     .optional()
-    .isFloat({ min: 0, max: 10 }).withMessage('Nota deve estar entre 0 e 10'),
+    .custom(isGradeValue),
   body('test_id')
     .optional()
     .isInt({ min: 1 }).withMessage('ID da avaliação inválido'),
@@ -77,7 +85,7 @@ const validateBulkGrades = [
   body('grades')
     .isArray({ min: 1 }).withMessage('Deve ser um array de notas'),
   body('grades.*.grade_value')
-    .isFloat({ min: 0, max: 10 }).withMessage('Nota deve estar entre 0 e 10'),
+    .custom(isGradeValue),
   body('grades.*.test_id')
     .isInt({ min: 1 }).withMessage('ID da avaliação é obrigatório'),
   body('grades.*.student_id')

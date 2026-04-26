@@ -51,10 +51,9 @@ const create = async (data) => {
 };
 
 const bulkCreate = async (gradesData) => {
-  return await prisma.grades.createMany({
-    data: gradesData,
-    skipDuplicates: true
-  });
+  return await prisma.$transaction(
+    gradesData.map((data) => prisma.grades.create({ data }))
+  );
 };
 
 const update = async (id, data) => {
