@@ -3,9 +3,12 @@ const { HTTP_STATUS, MESSAGES } = require('../utils/constants');
 
 const createTest = async (req, res, next) => {
   try {
-    const newTest = await testService.createTest(req.body);
+    const newTest = await testService.createTest(req.body, req.user);
     return res.status(HTTP_STATUS.CREATED).json(newTest);
   } catch (error) {
+    if (error.message === MESSAGES.FORBIDDEN) {
+      return res.status(HTTP_STATUS.FORBIDDEN).json({ error: error.message });
+    }
     next(error);
   }
 };
@@ -51,11 +54,14 @@ const getTestsByClassDiscipline = async (req, res, next) => {
 const updateTest = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const updated = await testService.updateTest(parseInt(id), req.body);
+    const updated = await testService.updateTest(parseInt(id), req.body, req.user);
     return res.status(HTTP_STATUS.OK).json(updated);
   } catch (error) {
     if (error.message === MESSAGES.TEST_NOT_FOUND) {
       return res.status(HTTP_STATUS.NOT_FOUND).json({ error: error.message });
+    }
+    if (error.message === MESSAGES.FORBIDDEN) {
+      return res.status(HTTP_STATUS.FORBIDDEN).json({ error: error.message });
     }
     next(error);
   }
@@ -64,11 +70,14 @@ const updateTest = async (req, res, next) => {
 const deleteTest = async (req, res, next) => {
   try {
     const { id } = req.params;
-    await testService.deleteTest(parseInt(id));
+    await testService.deleteTest(parseInt(id), req.user);
     return res.status(HTTP_STATUS.OK).json({ message: 'Avaliação desativada com sucesso' });
   } catch (error) {
     if (error.message === MESSAGES.TEST_NOT_FOUND) {
       return res.status(HTTP_STATUS.NOT_FOUND).json({ error: error.message });
+    }
+    if (error.message === MESSAGES.FORBIDDEN) {
+      return res.status(HTTP_STATUS.FORBIDDEN).json({ error: error.message });
     }
     next(error);
   }

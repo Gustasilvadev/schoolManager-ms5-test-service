@@ -724,7 +724,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/FinalAverage'
 
-  /finalAverages/class-discipline/{classDisciplineId}:
+  /finalAverages/classDiscipline/{classDisciplineId}:
     get:
       tags:
         - FinalAverages
