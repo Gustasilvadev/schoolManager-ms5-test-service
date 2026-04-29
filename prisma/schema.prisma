@@ -16,7 +16,7 @@ model final_average {
 }
 
 model grades {
-  grade_id     Int   @id
+  grade_id     Int   @id @default(autoincrement())
   grade_value  Float @db.Float
   test_id      Int
   student_id   Int
