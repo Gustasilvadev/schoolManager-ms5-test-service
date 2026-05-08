@@ -12,7 +12,6 @@ const {
 router.use(authMiddleware);
 router.use(roleMiddleware(['ADMIN', 'TEACHER']));
 
-// Rotas de notas
 router.get('/listGrades', gradeController.getAllGrades);
 router.get('/listGradeById/:id', gradeController.getGradeById);
 router.get('/test/:testId', gradeController.getGradesByTest);

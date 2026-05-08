@@ -11,7 +11,6 @@ const {
 router.use(authMiddleware);
 router.use(roleMiddleware(['ADMIN', 'TEACHER']));
 
-// Rotas de médias finais
 router.get('/listFinalAverages', finalAverageController.getAllFinalAverages);
 router.get('/listFinalAverageById/:id', finalAverageController.getFinalAverageById);
 router.get('/student/:studentId', finalAverageController.getFinalAveragesByStudent);

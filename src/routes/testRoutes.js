@@ -8,11 +8,9 @@ const {
   validateUpdateTest
 } = require('../middlewares/validationMiddleware');
 
-// Todas as rotas exigem autenticação
 router.use(authMiddleware);
 router.use(roleMiddleware(['ADMIN', 'TEACHER']));
 
-// Rotas de avaliações (testes)
 router.get('/listTests', testController.getAllTests);
 router.get('/listTestById/:id', testController.getTestById);
 router.get('/classDiscipline/:classDisciplineId', testController.getTestsByClassDiscipline);

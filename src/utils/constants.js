@@ -28,27 +28,18 @@ module.exports = {
     INTERNAL_SERVER_ERROR: 500
   },
   MESSAGES: {
-    // Autenticação
     TOKEN_MISSING: 'Token não fornecido',
     TOKEN_INVALID: 'Token inválido ou expirado',
     FORBIDDEN: 'Acesso negado: permissão insuficiente',
-
-    // Testes
     TEST_NOT_FOUND: 'Avaliação não encontrada',
     TEST_TYPE_REQUIRED: 'Tipo de avaliação é obrigatório',
     TEST_DESCRIPTION_REQUIRED: 'Descrição da avaliação é obrigatória',
-
-    // Notas
     GRADE_NOT_FOUND: 'Nota não encontrada',
     STUDENT_NOT_FOUND: 'Aluno não encontrado',
     GRADE_ALREADY_EXISTS: 'Nota já lançada para este aluno nesta avaliação',
     GRADE_VALUE_INVALID: 'Valor da nota inválido (deve estar entre 0 e 10)',
-
-    // Médias finais
     FINAL_AVERAGE_NOT_FOUND: 'Média final não encontrada',
     FINAL_AVERAGE_ALREADY_EXISTS: 'Média final já calculada para este aluno nesta disciplina',
-
-    // Disciplinas e turmas (para validação)
     CLASS_DISCIPLINE_NOT_FOUND: 'Disciplina não encontrada na turma',
     INVALID_DATA: 'Dados inválidos',
     REQUIRED_FIELD: 'Campo obrigatório não preenchido'

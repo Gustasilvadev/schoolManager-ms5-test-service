@@ -17,7 +17,6 @@ const isGradeValue = (value) => {
   return true;
 };
 
-// ---------- Testes (avaliações) ----------
 const validateCreateTest = [
   body('test_type')
     .notEmpty().withMessage('Tipo de avaliação é obrigatório')
@@ -50,7 +49,6 @@ const validateUpdateTest = [
   validate
 ];
 
-// ---------- Notas (grades) ----------
 const validateCreateGrade = [
   body('grade_value')
     .custom(isGradeValue),
@@ -93,7 +91,6 @@ const validateBulkGrades = [
   validate
 ];
 
-// ---------- Médias finais ----------
 const validateCreateFinalAverage = [
   body('final_average_value')
     .isFloat({ min: 0, max: 10 }).withMessage('Média deve estar entre 0 e 10'),

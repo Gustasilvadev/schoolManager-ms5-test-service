@@ -23,8 +23,6 @@ const bulkCreateGrades = async (req, res, next) => {
   try {
     const { grades } = req.body;
     const result = await gradeService.bulkCreateGrades(grades, req.user);
-    // Após a refatoração, bulkCreate usa $transaction e retorna um array de
-    // grades criados. Mantém o contrato anterior expondo "count".
     const count = Array.isArray(result) ? result.length : (result?.count ?? 0);
     return res.status(HTTP_STATUS.CREATED).json({
       message: `${count} notas lançadas com sucesso`,
