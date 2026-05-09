@@ -10,15 +10,17 @@ const {
 } = require('../middlewares/validationMiddleware');
 
 router.use(authMiddleware);
-router.use(roleMiddleware(['ADMIN', 'TEACHER']));
 
-router.get('/listGrades', gradeController.getAllGrades);
-router.get('/listGradeById/:id', gradeController.getGradeById);
-router.get('/test/:testId', gradeController.getGradesByTest);
-router.get('/student/:studentId', gradeController.getGradesByStudent);
-router.post('/createGrade', validateCreateGrade, gradeController.createGrade);
-router.post('/bulkCreateGrades', validateBulkGrades, gradeController.bulkCreateGrades);
-router.put('/updateGradeById/:id', validateUpdateGrade, gradeController.updateGrade);
-router.delete('/deleteGradeById/:id', gradeController.deleteGrade);
+const ADMIN_ONLY = roleMiddleware(['ADMIN']);
+const ADMIN_OR_TEACHER = roleMiddleware(['ADMIN', 'TEACHER']);
+
+router.get('/listGrades', ADMIN_OR_TEACHER, gradeController.getAllGrades);
+router.get('/listGradeById/:id', ADMIN_OR_TEACHER, gradeController.getGradeById);
+router.get('/test/:testId', ADMIN_OR_TEACHER, gradeController.getGradesByTest);
+router.get('/student/:studentId', ADMIN_OR_TEACHER, gradeController.getGradesByStudent);
+router.post('/createGrade', ADMIN_OR_TEACHER, validateCreateGrade, gradeController.createGrade);
+router.post('/bulkCreateGrades', ADMIN_OR_TEACHER, validateBulkGrades, gradeController.bulkCreateGrades);
+router.put('/updateGradeById/:id', ADMIN_OR_TEACHER, validateUpdateGrade, gradeController.updateGrade);
+router.delete('/deleteGradeById/:id', ADMIN_OR_TEACHER, gradeController.deleteGrade);
 
 module.exports = router;

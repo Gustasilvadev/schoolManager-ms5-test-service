@@ -9,13 +9,15 @@ const {
 } = require('../middlewares/validationMiddleware');
 
 router.use(authMiddleware);
-router.use(roleMiddleware(['ADMIN', 'TEACHER']));
 
-router.get('/listTests', testController.getAllTests);
-router.get('/listTestById/:id', testController.getTestById);
-router.get('/classDiscipline/:classDisciplineId', testController.getTestsByClassDiscipline);
-router.post('/createTest', validateCreateTest, testController.createTest);
-router.put('/updateTestById/:id', validateUpdateTest, testController.updateTest);
-router.delete('/deleteTestById/:id', testController.deleteTest);
+const ADMIN_ONLY = roleMiddleware(['ADMIN']);
+const ADMIN_OR_TEACHER = roleMiddleware(['ADMIN', 'TEACHER']);
+
+router.get('/listTests', ADMIN_OR_TEACHER, testController.getAllTests);
+router.get('/listTestById/:id', ADMIN_OR_TEACHER, testController.getTestById);
+router.get('/classDiscipline/:classDisciplineId', ADMIN_OR_TEACHER, testController.getTestsByClassDiscipline);
+router.post('/createTest', ADMIN_OR_TEACHER, validateCreateTest, testController.createTest);
+router.put('/updateTestById/:id', ADMIN_OR_TEACHER, validateUpdateTest, testController.updateTest);
+router.delete('/deleteTestById/:id', ADMIN_OR_TEACHER, testController.deleteTest);
 
 module.exports = router;
