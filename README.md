@@ -48,10 +48,12 @@ Para mantermos o histórico limpo e rastreável, este projeto utiliza a especifi
 |--------|---------------------------------------------------|-------------------------------------------------------|------|------|
 | GET    | `/tests/listTests`                                | Lista todas as avaliações                             | ✅   | — |
 | GET    | `/tests/listTestById/{id}`                        | Busca avaliação por ID                                | ✅   | — |
-| GET    | `/tests/class-discipline/{classDisciplineId}`     | Lista avaliações por turma-disciplina                 | ✅   | — |
+| GET    | `/tests/classDiscipline/{classDisciplineId}`      | Lista avaliações por turma-disciplina                 | ✅   | — |
 | POST   | `/tests/createTest`                               | Cria nova avaliação                                   | ✅   | dados da avaliação |
 | PUT    | `/tests/updateTestById/{id}`                      | Atualiza dados da avaliação                           | ✅   | dados da avaliação |
 | DELETE | `/tests/deleteTestById/{id}`                      | Deleta avaliação (lógico)                             | ✅   | — |
+
+> **`getTestsByClassDiscipline` valida o `class_discipline_id` no MS4** via Token Propagation — retorna `404 CLASS_DISCIPLINE_NOT_FOUND` se a turma-disciplina não existir.
 
 ---
 
@@ -68,6 +70,8 @@ Para mantermos o histórico limpo e rastreável, este projeto utiliza a especifi
 | PUT    | `/grades/updateGradeById/{id}`         | Atualiza nota                              | ✅   | dados da nota |
 | DELETE | `/grades/deleteGradeById/{id}`         | Deleta nota (lógico)                       | ✅   | — |
 
+> **`getGradesByStudent` valida o `student_id` no MS2** via Token Propagation — retorna `404 STUDENT_NOT_FOUND` se o aluno não existir.
+
 ---
 
 ## 📊 Final Averages (Médias Finais)
@@ -82,6 +86,19 @@ Para mantermos o histórico limpo e rastreável, este projeto utiliza a especifi
 | POST   | `/finalAverages/calculate/{studentId}/{classDisciplineId}`       | Calcula e cria média final automaticamente            | ✅   | — |
 | PUT    | `/finalAverages/updateFinalAverageById/{id}`                     | Atualiza média final                                  | ✅   | dados da média |
 | DELETE | `/finalAverages/deleteFinalAverageById/{id}`                     | Deleta média final (lógico)                           | ✅   | — |
+---
+
+## 🔗 Integrações HTTP
+
+O MS5 consome endpoints de outros microsserviços com **Token Propagation** (envia o `Authorization` recebido na requisição original):
+
+| Cliente                     | Destino | Endpoint                                                     | Usado em                                                |
+|-----------------------------|---------|--------------------------------------------------------------|---------------------------------------------------------|
+| `utils/classesClient.js`    | MS4     | `GET /classes/checkTeacherAccess/{teacherId}/{classDisciplineId}` | Validação de acesso do professor à class_discipline |
+| `utils/classesClient.js`    | MS4     | `GET /classes/listClassDisciplineById/{id}`                  | Validação de existência de class_discipline_id          |
+| `utils/studentsClient.js`   | MS2     | `GET /students/listStudentById/{id}`                         | Validação de existência de student_id                   |
+
+Variáveis de ambiente: `STUDENT_SERVICE_URL`, `CLASSES_SERVICE_URL`, `*_TIMEOUT_MS` (default 3000ms).
 
 ---
 
