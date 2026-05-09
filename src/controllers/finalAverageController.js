@@ -37,9 +37,15 @@ const getAllFinalAverages = async (req, res, next) => {
     if (class_discipline_id) filters.class_discipline_id = parseInt(class_discipline_id);
     if (final_average_status !== undefined) filters.final_average_status = parseInt(final_average_status);
 
-    const result = await finalAverageService.getAllFinalAverages(filters, parseInt(page), parseInt(limit));
+    const result = await finalAverageService.getAllFinalAverages(filters, parseInt(page), parseInt(limit), req.headers.authorization);
     return res.status(HTTP_STATUS.OK).json(result);
   } catch (error) {
+    if (error.message === MESSAGES.CLASS_DISCIPLINE_NOT_FOUND) {
+      return res.status(HTTP_STATUS.NOT_FOUND).json({ error: error.message });
+    }
+    if (error.message === MESSAGES.EXTERNAL_SERVICE_UNAVAILABLE) {
+      return res.status(503).json({ error: error.message });
+    }
     next(error);
   }
 };
@@ -70,9 +76,15 @@ const getFinalAveragesByStudent = async (req, res, next) => {
 const getFinalAveragesByClassDiscipline = async (req, res, next) => {
   try {
     const { classDisciplineId } = req.params;
-    const averages = await finalAverageService.getFinalAveragesByClassDiscipline(parseInt(classDisciplineId));
+    const averages = await finalAverageService.getFinalAveragesByClassDiscipline(parseInt(classDisciplineId), req.headers.authorization);
     return res.status(HTTP_STATUS.OK).json(averages);
   } catch (error) {
+    if (error.message === MESSAGES.CLASS_DISCIPLINE_NOT_FOUND) {
+      return res.status(HTTP_STATUS.NOT_FOUND).json({ error: error.message });
+    }
+    if (error.message === MESSAGES.EXTERNAL_SERVICE_UNAVAILABLE) {
+      return res.status(503).json({ error: error.message });
+    }
     next(error);
   }
 };

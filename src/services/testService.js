@@ -1,16 +1,16 @@
 const testRepo = require('../repositories/testRepository');
-const { checkTeacherAccess } = require('../utils/classesClient');
+const { checkTeacherAccess, findClassDisciplineById } = require('../utils/classesClient');
 const { TEST_STATUS, MESSAGES, ROLES } = require('../utils/constants');
 
-const ensureTeacherOwnsClassDiscipline = async (currentUser, classDisciplineId) => {
+const ensureTeacherOwnsClassDiscipline = async (currentUser, classDisciplineId, authToken) => {
   if (!currentUser || currentUser.role !== ROLES.TEACHER) return;
   if (!currentUser.teacher_id) throw new Error(MESSAGES.FORBIDDEN);
-  const allowed = await checkTeacherAccess(currentUser.teacher_id, classDisciplineId);
+  const allowed = await checkTeacherAccess(currentUser.teacher_id, classDisciplineId, authToken);
   if (!allowed) throw new Error(MESSAGES.FORBIDDEN);
 };
 
-const createTest = async (data, currentUser = null) => {
-  await ensureTeacherOwnsClassDiscipline(currentUser, data.class_discipline_id);
+const createTest = async (data, currentUser = null, authToken = null) => {
+  await ensureTeacherOwnsClassDiscipline(currentUser, data.class_discipline_id, authToken);
   const newTest = await testRepo.create(data);
   return newTest;
 };
@@ -33,23 +33,25 @@ const getTestById = async (id) => {
   return test;
 };
 
-const getTestsByClassDiscipline = async (classDisciplineId) => {
+const getTestsByClassDiscipline = async (classDisciplineId, authToken) => {
+  const cd = await findClassDisciplineById(classDisciplineId, authToken);
+  if (!cd) throw new Error(MESSAGES.CLASS_DISCIPLINE_NOT_FOUND);
   const tests = await testRepo.findByClassDiscipline(classDisciplineId);
   return tests;
 };
 
-const updateTest = async (id, updateData, currentUser = null) => {
+const updateTest = async (id, updateData, currentUser = null, authToken = null) => {
   const existing = await testRepo.findById(id);
   if (!existing) throw new Error(MESSAGES.TEST_NOT_FOUND);
-  await ensureTeacherOwnsClassDiscipline(currentUser, existing.class_discipline_id);
+  await ensureTeacherOwnsClassDiscipline(currentUser, existing.class_discipline_id, authToken);
   const updated = await testRepo.update(id, updateData);
   return updated;
 };
 
-const deleteTest = async (id, currentUser = null) => {
+const deleteTest = async (id, currentUser = null, authToken = null) => {
   const existing = await testRepo.findById(id);
   if (!existing) throw new Error(MESSAGES.TEST_NOT_FOUND);
-  await ensureTeacherOwnsClassDiscipline(currentUser, existing.class_discipline_id);
+  await ensureTeacherOwnsClassDiscipline(currentUser, existing.class_discipline_id, authToken);
   await testRepo.softDelete(id);
   return true;
 };

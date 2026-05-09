@@ -3,7 +3,7 @@ const { HTTP_STATUS, MESSAGES } = require('../utils/constants');
 
 const createTest = async (req, res, next) => {
   try {
-    const newTest = await testService.createTest(req.body, req.user);
+    const newTest = await testService.createTest(req.body, req.user, req.headers.authorization);
     return res.status(HTTP_STATUS.CREATED).json(newTest);
   } catch (error) {
     if (error.message === MESSAGES.FORBIDDEN) {
@@ -44,9 +44,15 @@ const getTestById = async (req, res, next) => {
 const getTestsByClassDiscipline = async (req, res, next) => {
   try {
     const { classDisciplineId } = req.params;
-    const tests = await testService.getTestsByClassDiscipline(parseInt(classDisciplineId));
+    const tests = await testService.getTestsByClassDiscipline(parseInt(classDisciplineId), req.headers.authorization);
     return res.status(HTTP_STATUS.OK).json(tests);
   } catch (error) {
+    if (error.message === MESSAGES.CLASS_DISCIPLINE_NOT_FOUND) {
+      return res.status(HTTP_STATUS.NOT_FOUND).json({ error: error.message });
+    }
+    if (error.message === MESSAGES.EXTERNAL_SERVICE_UNAVAILABLE) {
+      return res.status(503).json({ error: error.message });
+    }
     next(error);
   }
 };
@@ -54,7 +60,7 @@ const getTestsByClassDiscipline = async (req, res, next) => {
 const updateTest = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const updated = await testService.updateTest(parseInt(id), req.body, req.user);
+    const updated = await testService.updateTest(parseInt(id), req.body, req.user, req.headers.authorization);
     return res.status(HTTP_STATUS.OK).json(updated);
   } catch (error) {
     if (error.message === MESSAGES.TEST_NOT_FOUND) {
@@ -70,7 +76,7 @@ const updateTest = async (req, res, next) => {
 const deleteTest = async (req, res, next) => {
   try {
     const { id } = req.params;
-    await testService.deleteTest(parseInt(id), req.user);
+    await testService.deleteTest(parseInt(id), req.user, req.headers.authorization);
     return res.status(HTTP_STATUS.OK).json({ message: 'Avaliação desativada com sucesso' });
   } catch (error) {
     if (error.message === MESSAGES.TEST_NOT_FOUND) {

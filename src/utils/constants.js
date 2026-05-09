@@ -42,6 +42,7 @@ module.exports = {
     FINAL_AVERAGE_ALREADY_EXISTS: 'Média final já calculada para este aluno nesta disciplina',
     CLASS_DISCIPLINE_NOT_FOUND: 'Disciplina não encontrada na turma',
     INVALID_DATA: 'Dados inválidos',
-    REQUIRED_FIELD: 'Campo obrigatório não preenchido'
+    REQUIRED_FIELD: 'Campo obrigatório não preenchido',
+    EXTERNAL_SERVICE_UNAVAILABLE: 'Serviço externo indisponível'
   }
 };

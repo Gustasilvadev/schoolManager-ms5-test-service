@@ -1,5 +1,6 @@
 const finalAverageRepo = require('../repositories/finalAverageRepository');
 const gradeRepo = require('../repositories/gradeRepository');
+const { findClassDisciplineById } = require('../utils/classesClient');
 const { FINAL_AVERAGE_STATUS, MESSAGES } = require('../utils/constants');
 
 const createFinalAverage = async (data) => {
@@ -42,7 +43,12 @@ const calculateAndCreateFinalAverage = async (studentId, classDisciplineId) => {
   }
 };
 
-const getAllFinalAverages = async (filters = {}, page = 1, limit = 10) => {
+const getAllFinalAverages = async (filters = {}, page = 1, limit = 10, authToken = null) => {
+  if (filters.class_discipline_id) {
+    const cd = await findClassDisciplineById(filters.class_discipline_id, authToken);
+    if (!cd) throw new Error(MESSAGES.CLASS_DISCIPLINE_NOT_FOUND);
+  }
+
   const skip = (page - 1) * limit;
   const where = {};
   if (filters.student_id) where.student_id = filters.student_id;
@@ -65,7 +71,9 @@ const getFinalAveragesByStudent = async (studentId) => {
   return averages;
 };
 
-const getFinalAveragesByClassDiscipline = async (classDisciplineId) => {
+const getFinalAveragesByClassDiscipline = async (classDisciplineId, authToken) => {
+  const cd = await findClassDisciplineById(classDisciplineId, authToken);
+  if (!cd) throw new Error(MESSAGES.CLASS_DISCIPLINE_NOT_FOUND);
   const averages = await finalAverageRepo.findByClassDiscipline(classDisciplineId);
   return averages;
 };

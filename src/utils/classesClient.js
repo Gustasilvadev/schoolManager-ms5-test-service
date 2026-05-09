@@ -1,23 +1,59 @@
-const checkTeacherAccess = async (teacherId, classDisciplineId) => {
-  const baseUrl = process.env.CLASSES_SERVICE_URL;
-  if (!baseUrl) return false;
+const { MESSAGES } = require('./constants');
 
-  const timeoutMs = parseInt(process.env.CLASSES_SERVICE_TIMEOUT_MS, 10);
+const SERVICE_NAME = 'ClassesService';
+
+const buildUrl = (path) => {
+  const base = process.env.CLASSES_SERVICE_URL;
+  if (!base) {
+    throw new Error('CLASSES_SERVICE_URL não configurado');
+  }
+  return `${base.replace(/\/$/, '')}${path}`;
+};
+
+const fetchWithTimeout = async (url, authToken) => {
+  const timeoutMs = parseInt(process.env.CLASSES_SERVICE_TIMEOUT_MS, 10) || 3000;
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const response = await fetch(
-      `${baseUrl}/classes/checkTeacherAccess/${teacherId}/${classDisciplineId}`,
-      { method: 'GET', signal: controller.signal }
-    );
-    if (!response.ok) return false;
-    const data = await response.json();
-    return Boolean(data?.hasAccess);
-  } catch (err) {
-    return false;
+    return await fetch(url, {
+      method: 'GET',
+      signal: controller.signal,
+      headers: authToken ? { Authorization: authToken } : {}
+    });
   } finally {
     clearTimeout(timer);
   }
 };
 
-module.exports = { checkTeacherAccess };
+const checkTeacherAccess = async (teacherId, classDisciplineId, authToken) => {
+  const url = buildUrl(`/classes/checkTeacherAccess/${encodeURIComponent(teacherId)}/${encodeURIComponent(classDisciplineId)}`);
+  let response;
+  try {
+    response = await fetchWithTimeout(url, authToken);
+  } catch (err) {
+    return false;
+  }
+  if (!response.ok) return false;
+  const data = await response.json();
+  return Boolean(data?.hasAccess);
+};
+
+const findClassDisciplineById = async (classDisciplineId, authToken) => {
+  const url = buildUrl(`/classes/listClassDisciplineById/${encodeURIComponent(classDisciplineId)}`);
+  let response;
+  try {
+    response = await fetchWithTimeout(url, authToken);
+  } catch (err) {
+    console.error(`[MS5->${SERVICE_NAME}] Falha ao consultar listClassDisciplineById:`, err.message);
+    throw new Error(MESSAGES.EXTERNAL_SERVICE_UNAVAILABLE);
+  }
+
+  if (response.status === 404) return null;
+  if (!response.ok) {
+    console.error(`[MS5->${SERVICE_NAME}] listClassDisciplineById retornou HTTP ${response.status}`);
+    throw new Error(MESSAGES.EXTERNAL_SERVICE_UNAVAILABLE);
+  }
+  return await response.json();
+};
+
+module.exports = { checkTeacherAccess, findClassDisciplineById };
