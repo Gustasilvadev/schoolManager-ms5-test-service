@@ -193,6 +193,14 @@ paths:
           schema:
             type: integer
             enum: [0, 1, 2]
+          description: |
+            Filtro fino por status. Sem este parâmetro, ADMIN recebe ACTIVE+INACTIVE; TEACHER força ACTIVE.
+        - name: includeDeleted
+          in: query
+          schema:
+            type: boolean
+            default: false
+          description: Quando `true`, inclui avaliações com status DELETED (2). Apenas ADMIN.
         - name: class_discipline_id
           in: query
           schema:
@@ -336,6 +344,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Test'
+        '400':
+          description: |
+            Avaliação está deletada (status=2). Use
+            `POST /tests/restoreTestById/{id}` para reativar.
         '404':
           description: Avaliação não encontrada
 
@@ -362,6 +374,30 @@ paths:
                 properties:
                   message:
                     type: string
+        '404':
+          description: Avaliação não encontrada
+
+  /tests/restoreTestById/{id}:
+    post:
+      tags:
+        - Tests
+      summary: Restaura avaliação deletada (ADMIN ou TEACHER dono)
+      description: Promove status DELETED (2) → ACTIVE (1). TEACHER só restaura avaliações da própria class_discipline.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Avaliação restaurada
+        '400':
+          description: Avaliação não está deletada
+        '403':
+          description: Acesso negado
         '404':
           description: Avaliação não encontrada
 
@@ -397,6 +433,14 @@ paths:
           schema:
             type: integer
             enum: [0, 1, 2]
+          description: |
+            Filtro fino. Sem este parâmetro, ADMIN recebe ACTIVE+INACTIVE; TEACHER força ACTIVE.
+        - name: includeDeleted
+          in: query
+          schema:
+            type: boolean
+            default: false
+          description: Quando `true`, inclui notas com status DELETED (2). Apenas ADMIN.
       responses:
         '200':
           description: Lista de notas
@@ -611,6 +655,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Grade'
+        '400':
+          description: |
+            Nota está deletada (status=2). Use `POST /grades/restoreGradeById/{id}` para reativar.
         '404':
           description: Nota não encontrada
 
@@ -637,6 +684,30 @@ paths:
                 properties:
                   message:
                     type: string
+        '404':
+          description: Nota não encontrada
+
+  /grades/restoreGradeById/{id}:
+    post:
+      tags:
+        - Grades
+      summary: Restaura nota deletada (ADMIN ou TEACHER dono)
+      description: Promove status DELETED (2) → ACTIVE (1). TEACHER só restaura notas de avaliações da própria class_discipline.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Nota restaurada
+        '400':
+          description: Nota não está deletada
+        '403':
+          description: Acesso negado
         '404':
           description: Nota não encontrada
 
@@ -672,6 +743,14 @@ paths:
           schema:
             type: integer
             enum: [0, 1, 2]
+          description: |
+            Filtro fino. Sem este parâmetro, ADMIN recebe ACTIVE+INACTIVE; TEACHER força ACTIVE.
+        - name: includeDeleted
+          in: query
+          schema:
+            type: boolean
+            default: false
+          description: Quando `true`, inclui médias com status DELETED (2). Apenas ADMIN.
       responses:
         '200':
           description: Lista de médias finais
@@ -862,6 +941,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/FinalAverage'
+        '400':
+          description: |
+            Média está deletada (status=2). Use
+            `POST /finalAverages/restoreFinalAverageById/{id}` para reativar.
         '404':
           description: Média final não encontrada
 
@@ -888,5 +971,27 @@ paths:
                 properties:
                   message:
                     type: string
+        '404':
+          description: Média final não encontrada
+
+  /finalAverages/restoreFinalAverageById/{id}:
+    post:
+      tags:
+        - FinalAverages
+      summary: Restaura média final deletada
+      description: Promove status DELETED (2) → ACTIVE (1).
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Média final restaurada
+        '400':
+          description: Média não está deletada
         '404':
           description: Média final não encontrada

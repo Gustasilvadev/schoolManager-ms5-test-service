@@ -46,12 +46,13 @@ Para mantermos o histórico limpo e rastreável, este projeto utiliza a especifi
 
 | Método | Endpoint                                          | Descrição                                             | Auth | Body |
 |--------|---------------------------------------------------|-------------------------------------------------------|------|------|
-| GET    | `/tests/listTests`                                | Lista todas as avaliações                             | ✅   | — |
+| GET    | `/tests/listTests`                                | Lista avaliações. ADMIN: ACTIVE+INACTIVE (use `?includeDeleted=true`/`?test_status=N`). TEACHER: força ACTIVE. | ✅   | — |
 | GET    | `/tests/listTestById/{id}`                        | Busca avaliação por ID                                | ✅   | — |
 | GET    | `/tests/classDiscipline/{classDisciplineId}`      | Lista avaliações por turma-disciplina                 | ✅   | — |
 | POST   | `/tests/createTest`                               | Cria nova avaliação                                   | ✅   | dados da avaliação |
-| PUT    | `/tests/updateTestById/{id}`                      | Atualiza dados da avaliação                           | ✅   | dados da avaliação |
-| DELETE | `/tests/deleteTestById/{id}`                      | Deleta avaliação (lógico)                             | ✅   | — |
+| PUT    | `/tests/updateTestById/{id}`                      | Atualiza avaliação (bloqueado se status=DELETED)      | ✅   | dados da avaliação |
+| DELETE | `/tests/deleteTestById/{id}`                      | Deleta avaliação (soft, status=2)                     | ✅   | — |
+| POST   | `/tests/restoreTestById/{id}`                     | Restaura avaliação deletada (status: 2 → 1)           | ✅   | — |
 
 > **`getTestsByClassDiscipline` valida o `class_discipline_id` no MS4** via Token Propagation — retorna `404 CLASS_DISCIPLINE_NOT_FOUND` se a turma-disciplina não existir.
 
@@ -61,14 +62,15 @@ Para mantermos o histórico limpo e rastreável, este projeto utiliza a especifi
 
 | Método | Endpoint                               | Descrição                                  | Auth | Body |
 |--------|----------------------------------------|--------------------------------------------|------|------|
-| GET    | `/grades/listGrades`                   | Lista todas as notas                       | ✅   | — |
+| GET    | `/grades/listGrades`                   | Lista notas. ADMIN: ACTIVE+INACTIVE (use `?includeDeleted=true`/`?grade_status=N`). TEACHER: força ACTIVE. | ✅   | — |
 | GET    | `/grades/listGradeById/{id}`           | Busca nota por ID                          | ✅   | — |
 | GET    | `/grades/test/{testId}`                | Lista notas de uma avaliação               | ✅   | — |
 | GET    | `/grades/student/{studentId}`          | Lista notas de um aluno                    | ✅   | — |
 | POST   | `/grades/createGrade`                  | Cria nova nota                             | ✅   | dados da nota |
 | POST   | `/grades/bulkCreateGrades`             | Cria notas em lote                         | ✅   | lista de notas |
-| PUT    | `/grades/updateGradeById/{id}`         | Atualiza nota                              | ✅   | dados da nota |
-| DELETE | `/grades/deleteGradeById/{id}`         | Deleta nota (lógico)                       | ✅   | — |
+| PUT    | `/grades/updateGradeById/{id}`         | Atualiza nota (bloqueado se status=DELETED) | ✅   | dados da nota |
+| DELETE | `/grades/deleteGradeById/{id}`         | Deleta nota (soft, status=2)               | ✅   | — |
+| POST   | `/grades/restoreGradeById/{id}`        | Restaura nota deletada (status: 2 → 1)     | ✅   | — |
 
 > **`getGradesByStudent` valida o `student_id` no MS2** via Token Propagation — retorna `404 STUDENT_NOT_FOUND` se o aluno não existir.
 
@@ -78,14 +80,15 @@ Para mantermos o histórico limpo e rastreável, este projeto utiliza a especifi
 
 | Método | Endpoint                                                         | Descrição                                             | Auth | Body |
 |--------|------------------------------------------------------------------|-------------------------------------------------------|------|------|
-| GET    | `/finalAverages/listFinalAverages`                               | Lista todas as médias finais                          | ✅   | — |
+| GET    | `/finalAverages/listFinalAverages`                               | Lista médias. ADMIN: ACTIVE+INACTIVE (use `?includeDeleted=true`/`?final_average_status=N`). TEACHER: força ACTIVE. | ✅   | — |
 | GET    | `/finalAverages/listFinalAverageById/{id}`                       | Busca média final por ID                              | ✅   | — |
 | GET    | `/finalAverages/student/{studentId}`                             | Lista médias finais de um aluno                       | ✅   | — |
 | GET    | `/finalAverages/classDiscipline/{classDisciplineId}`             | Lista médias finais por turma-disciplina              | ✅   | — |
 | POST   | `/finalAverages/createFinalAverage`                              | Cria média final manualmente                          | ✅   | dados da média |
 | POST   | `/finalAverages/calculate/{studentId}/{classDisciplineId}`       | Calcula e cria média final automaticamente            | ✅   | — |
-| PUT    | `/finalAverages/updateFinalAverageById/{id}`                     | Atualiza média final                                  | ✅   | dados da média |
-| DELETE | `/finalAverages/deleteFinalAverageById/{id}`                     | Deleta média final (lógico)                           | ✅   | — |
+| PUT    | `/finalAverages/updateFinalAverageById/{id}`                     | Atualiza média final (bloqueado se status=DELETED)    | ✅   | dados da média |
+| DELETE | `/finalAverages/deleteFinalAverageById/{id}`                     | Deleta média final (soft, status=2)                   | ✅   | — |
+| POST   | `/finalAverages/restoreFinalAverageById/{id}`                    | Restaura média deletada (status: 2 → 1)               | ✅   | — |
 ---
 
 ## 🔗 Integrações HTTP
