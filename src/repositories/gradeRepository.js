@@ -70,6 +70,13 @@ const softDelete = async (id) => {
   });
 };
 
+const restore = async (id) => {
+  return await prisma.grades.update({
+    where: { grade_id: id },
+    data: { grade_status: GRADE_STATUS.ACTIVE }
+  });
+};
+
 const deleteByTest = async (testId) => {
   return await prisma.grades.deleteMany({
     where: { test_id: testId }
@@ -97,6 +104,7 @@ module.exports = {
   bulkCreate,
   update,
   softDelete,
+  restore,
   deleteByTest,
   deleteByStudent,
   count

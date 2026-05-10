@@ -54,6 +54,13 @@ const softDelete = async (id) => {
   });
 };
 
+const restore = async (id) => {
+  return await prisma.final_average.update({
+    where: { final_average_id: id },
+    data: { final_average_status: FINAL_AVERAGE_STATUS.ACTIVE }
+  });
+};
+
 const deleteByStudent = async (studentId) => {
   return await prisma.final_average.deleteMany({
     where: { student_id: studentId }
@@ -79,6 +86,7 @@ module.exports = {
   create,
   update,
   softDelete,
+  restore,
   deleteByStudent,
   deleteByClassDiscipline,
   count

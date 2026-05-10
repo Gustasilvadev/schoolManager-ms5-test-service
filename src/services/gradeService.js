@@ -76,12 +76,19 @@ const bulkCreateGrades = async (gradesData, currentUser = null, authToken = null
   }
 };
 
-const getAllGrades = async (filters = {}, page = 1, limit = 10) => {
+const getAllGrades = async (filters = {}, page = 1, limit = 10, userRole = ROLES.ADMIN) => {
   const skip = (page - 1) * limit;
   const where = {};
   if (filters.test_id) where.test_id = filters.test_id;
   if (filters.student_id) where.student_id = filters.student_id;
-  if (filters.grade_status !== undefined) where.grade_status = filters.grade_status;
+
+  if (userRole === ROLES.TEACHER) {
+    where.grade_status = GRADE_STATUS.ACTIVE;
+  } else if (filters.grade_status !== undefined) {
+    where.grade_status = filters.grade_status;
+  } else if (filters.includeDeleted !== true) {
+    where.grade_status = { in: [GRADE_STATUS.ACTIVE, GRADE_STATUS.INACTIVE] };
+  }
 
   const grades = await gradeRepo.findAll(skip, limit, where);
   const total = await gradeRepo.count(where);
@@ -111,6 +118,9 @@ const getGradesByStudent = async (studentId, authToken) => {
 const updateGrade = async (id, updateData, currentUser = null, authToken = null) => {
   const existing = await gradeRepo.findById(id);
   if (!existing) throw new Error(MESSAGES.GRADE_NOT_FOUND);
+  if (existing.grade_status === GRADE_STATUS.DELETED) {
+    throw new Error(MESSAGES.CANNOT_EDIT_DELETED_GRADE);
+  }
 
   const test = await testRepo.findById(existing.test_id);
   if (!test) throw new Error(MESSAGES.TEST_NOT_FOUND);
@@ -139,6 +149,17 @@ const deleteGrade = async (id, currentUser = null, authToken = null) => {
   return true;
 };
 
+const restoreGrade = async (id, currentUser = null, authToken = null) => {
+  const existing = await gradeRepo.findById(id);
+  if (!existing) throw new Error(MESSAGES.GRADE_NOT_FOUND);
+  if (existing.grade_status !== GRADE_STATUS.DELETED) {
+    throw new Error(MESSAGES.NOT_DELETED_CANNOT_RESTORE);
+  }
+  const test = await testRepo.findById(existing.test_id);
+  if (test) await ensureTeacherOwnsTest(currentUser, test, authToken);
+  return await gradeRepo.restore(id);
+};
+
 module.exports = {
   createGrade,
   bulkCreateGrades,
@@ -147,5 +168,6 @@ module.exports = {
   getGradesByTest,
   getGradesByStudent,
   updateGrade,
-  deleteGrade
+  deleteGrade,
+  restoreGrade
 };

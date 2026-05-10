@@ -19,5 +19,6 @@ router.get('/classDiscipline/:classDisciplineId', ADMIN_OR_TEACHER, testControll
 router.post('/createTest', ADMIN_OR_TEACHER, validateCreateTest, testController.createTest);
 router.put('/updateTestById/:id', ADMIN_OR_TEACHER, validateUpdateTest, testController.updateTest);
 router.delete('/deleteTestById/:id', ADMIN_OR_TEACHER, testController.deleteTest);
+router.post('/restoreTestById/:id', ADMIN_OR_TEACHER, testController.restoreTest);
 
 module.exports = router;

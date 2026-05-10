@@ -31,13 +31,14 @@ const calculateAndCreateFinalAverage = async (req, res, next) => {
 
 const getAllFinalAverages = async (req, res, next) => {
   try {
-    const { page = 1, limit = 10, student_id, class_discipline_id, final_average_status } = req.query;
+    const { page = 1, limit = 10, student_id, class_discipline_id, final_average_status, includeDeleted } = req.query;
     const filters = {};
     if (student_id) filters.student_id = parseInt(student_id);
     if (class_discipline_id) filters.class_discipline_id = parseInt(class_discipline_id);
     if (final_average_status !== undefined) filters.final_average_status = parseInt(final_average_status);
+    if (includeDeleted === 'true') filters.includeDeleted = true;
 
-    const result = await finalAverageService.getAllFinalAverages(filters, parseInt(page), parseInt(limit), req.headers.authorization);
+    const result = await finalAverageService.getAllFinalAverages(filters, parseInt(page), parseInt(limit), req.headers.authorization, req.user.role);
     return res.status(HTTP_STATUS.OK).json(result);
   } catch (error) {
     if (error.message === MESSAGES.CLASS_DISCIPLINE_NOT_FOUND) {
@@ -98,6 +99,28 @@ const updateFinalAverage = async (req, res, next) => {
     if (error.message === MESSAGES.FINAL_AVERAGE_NOT_FOUND) {
       return res.status(HTTP_STATUS.NOT_FOUND).json({ error: error.message });
     }
+    if (error.message === MESSAGES.CANNOT_EDIT_DELETED_FINAL_AVERAGE) {
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: error.message });
+    }
+    next(error);
+  }
+};
+
+const restoreFinalAverage = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const restored = await finalAverageService.restoreFinalAverage(parseInt(id));
+    return res.status(HTTP_STATUS.OK).json({
+      message: MESSAGES.FINAL_AVERAGE_RESTORED,
+      finalAverage: restored
+    });
+  } catch (error) {
+    if (error.message === MESSAGES.FINAL_AVERAGE_NOT_FOUND) {
+      return res.status(HTTP_STATUS.NOT_FOUND).json({ error: error.message });
+    }
+    if (error.message === MESSAGES.NOT_DELETED_CANNOT_RESTORE) {
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: error.message });
+    }
     next(error);
   }
 };
@@ -123,5 +146,6 @@ module.exports = {
   getFinalAveragesByStudent,
   getFinalAveragesByClassDiscipline,
   updateFinalAverage,
-  deleteFinalAverage
+  deleteFinalAverage,
+  restoreFinalAverage
 };

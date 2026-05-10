@@ -22,5 +22,6 @@ router.post('/createGrade', ADMIN_OR_TEACHER, validateCreateGrade, gradeControll
 router.post('/bulkCreateGrades', ADMIN_OR_TEACHER, validateBulkGrades, gradeController.bulkCreateGrades);
 router.put('/updateGradeById/:id', ADMIN_OR_TEACHER, validateUpdateGrade, gradeController.updateGrade);
 router.delete('/deleteGradeById/:id', ADMIN_OR_TEACHER, gradeController.deleteGrade);
+router.post('/restoreGradeById/:id', ADMIN_OR_TEACHER, gradeController.restoreGrade);
 
 module.exports = router;

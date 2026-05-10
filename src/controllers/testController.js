@@ -15,13 +15,14 @@ const createTest = async (req, res, next) => {
 
 const getAllTests = async (req, res, next) => {
   try {
-    const { page = 1, limit = 10, test_type, test_status, class_discipline_id } = req.query;
+    const { page = 1, limit = 10, test_type, test_status, class_discipline_id, includeDeleted } = req.query;
     const filters = {};
     if (test_type) filters.test_type = test_type;
     if (test_status !== undefined) filters.test_status = parseInt(test_status);
     if (class_discipline_id) filters.class_discipline_id = parseInt(class_discipline_id);
+    if (includeDeleted === 'true') filters.includeDeleted = true;
 
-    const result = await testService.getAllTests(filters, parseInt(page), parseInt(limit));
+    const result = await testService.getAllTests(filters, parseInt(page), parseInt(limit), req.user.role);
     return res.status(HTTP_STATUS.OK).json(result);
   } catch (error) {
     next(error);
@@ -69,6 +70,31 @@ const updateTest = async (req, res, next) => {
     if (error.message === MESSAGES.FORBIDDEN) {
       return res.status(HTTP_STATUS.FORBIDDEN).json({ error: error.message });
     }
+    if (error.message === MESSAGES.CANNOT_EDIT_DELETED_TEST) {
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: error.message });
+    }
+    next(error);
+  }
+};
+
+const restoreTest = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const restored = await testService.restoreTest(parseInt(id), req.user, req.headers.authorization);
+    return res.status(HTTP_STATUS.OK).json({
+      message: MESSAGES.TEST_RESTORED,
+      test: restored
+    });
+  } catch (error) {
+    if (error.message === MESSAGES.TEST_NOT_FOUND) {
+      return res.status(HTTP_STATUS.NOT_FOUND).json({ error: error.message });
+    }
+    if (error.message === MESSAGES.FORBIDDEN) {
+      return res.status(HTTP_STATUS.FORBIDDEN).json({ error: error.message });
+    }
+    if (error.message === MESSAGES.NOT_DELETED_CANNOT_RESTORE) {
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: error.message });
+    }
     next(error);
   }
 };
@@ -95,5 +121,6 @@ module.exports = {
   getTestById,
   getTestsByClassDiscipline,
   updateTest,
-  deleteTest
+  deleteTest,
+  restoreTest
 };

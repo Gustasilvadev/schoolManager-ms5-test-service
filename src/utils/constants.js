@@ -43,6 +43,13 @@ module.exports = {
     CLASS_DISCIPLINE_NOT_FOUND: 'Disciplina não encontrada na turma',
     INVALID_DATA: 'Dados inválidos',
     REQUIRED_FIELD: 'Campo obrigatório não preenchido',
-    EXTERNAL_SERVICE_UNAVAILABLE: 'Serviço externo indisponível'
+    EXTERNAL_SERVICE_UNAVAILABLE: 'Serviço externo indisponível',
+    CANNOT_EDIT_DELETED_TEST: 'Não é possível editar uma avaliação excluída',
+    CANNOT_EDIT_DELETED_GRADE: 'Não é possível editar uma nota excluída',
+    CANNOT_EDIT_DELETED_FINAL_AVERAGE: 'Não é possível editar uma média final excluída',
+    NOT_DELETED_CANNOT_RESTORE: 'O registro não está excluído',
+    TEST_RESTORED: 'Avaliação restaurada com sucesso',
+    GRADE_RESTORED: 'Nota restaurada com sucesso',
+    FINAL_AVERAGE_RESTORED: 'Média final restaurada com sucesso'
   }
 };

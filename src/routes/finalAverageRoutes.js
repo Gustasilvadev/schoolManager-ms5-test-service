@@ -21,5 +21,6 @@ router.post('/createFinalAverage', ADMIN_OR_TEACHER, validateCreateFinalAverage,
 router.post('/calculate/:studentId/:classDisciplineId', ADMIN_OR_TEACHER, finalAverageController.calculateAndCreateFinalAverage);
 router.put('/updateFinalAverageById/:id', ADMIN_OR_TEACHER, validateUpdateFinalAverage, finalAverageController.updateFinalAverage);
 router.delete('/deleteFinalAverageById/:id', ADMIN_OR_TEACHER, finalAverageController.deleteFinalAverage);
+router.post('/restoreFinalAverageById/:id', ADMIN_OR_TEACHER, finalAverageController.restoreFinalAverage);
 
 module.exports = router;

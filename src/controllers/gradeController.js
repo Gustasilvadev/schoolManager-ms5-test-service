@@ -44,13 +44,14 @@ const bulkCreateGrades = async (req, res, next) => {
 
 const getAllGrades = async (req, res, next) => {
   try {
-    const { page = 1, limit = 10, test_id, student_id, grade_status } = req.query;
+    const { page = 1, limit = 10, test_id, student_id, grade_status, includeDeleted } = req.query;
     const filters = {};
     if (test_id) filters.test_id = parseInt(test_id);
     if (student_id) filters.student_id = parseInt(student_id);
     if (grade_status !== undefined) filters.grade_status = parseInt(grade_status);
+    if (includeDeleted === 'true') filters.includeDeleted = true;
 
-    const result = await gradeService.getAllGrades(filters, parseInt(page), parseInt(limit));
+    const result = await gradeService.getAllGrades(filters, parseInt(page), parseInt(limit), req.user.role);
     return res.status(HTTP_STATUS.OK).json(result);
   } catch (error) {
     next(error);
@@ -111,6 +112,31 @@ const updateGrade = async (req, res, next) => {
     if (error.message === MESSAGES.FORBIDDEN) {
       return res.status(HTTP_STATUS.FORBIDDEN).json({ error: error.message });
     }
+    if (error.message === MESSAGES.CANNOT_EDIT_DELETED_GRADE) {
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: error.message });
+    }
+    next(error);
+  }
+};
+
+const restoreGrade = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const restored = await gradeService.restoreGrade(parseInt(id), req.user, req.headers.authorization);
+    return res.status(HTTP_STATUS.OK).json({
+      message: MESSAGES.GRADE_RESTORED,
+      grade: restored
+    });
+  } catch (error) {
+    if (error.message === MESSAGES.GRADE_NOT_FOUND) {
+      return res.status(HTTP_STATUS.NOT_FOUND).json({ error: error.message });
+    }
+    if (error.message === MESSAGES.FORBIDDEN) {
+      return res.status(HTTP_STATUS.FORBIDDEN).json({ error: error.message });
+    }
+    if (error.message === MESSAGES.NOT_DELETED_CANNOT_RESTORE) {
+      return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: error.message });
+    }
     next(error);
   }
 };
@@ -139,5 +165,6 @@ module.exports = {
   getGradesByTest,
   getGradesByStudent,
   updateGrade,
-  deleteGrade
+  deleteGrade,
+  restoreGrade
 };

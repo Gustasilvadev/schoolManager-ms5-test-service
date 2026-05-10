@@ -1,7 +1,7 @@
 const finalAverageRepo = require('../repositories/finalAverageRepository');
 const gradeRepo = require('../repositories/gradeRepository');
 const { findClassDisciplineById } = require('../utils/classesClient');
-const { FINAL_AVERAGE_STATUS, MESSAGES } = require('../utils/constants');
+const { FINAL_AVERAGE_STATUS, MESSAGES, ROLES } = require('../utils/constants');
 
 const createFinalAverage = async (data) => {
   const existing = await finalAverageRepo.findByStudentAndClassDiscipline(
@@ -43,7 +43,7 @@ const calculateAndCreateFinalAverage = async (studentId, classDisciplineId) => {
   }
 };
 
-const getAllFinalAverages = async (filters = {}, page = 1, limit = 10, authToken = null) => {
+const getAllFinalAverages = async (filters = {}, page = 1, limit = 10, authToken = null, userRole = ROLES.ADMIN) => {
   if (filters.class_discipline_id) {
     const cd = await findClassDisciplineById(filters.class_discipline_id, authToken);
     if (!cd) throw new Error(MESSAGES.CLASS_DISCIPLINE_NOT_FOUND);
@@ -53,7 +53,14 @@ const getAllFinalAverages = async (filters = {}, page = 1, limit = 10, authToken
   const where = {};
   if (filters.student_id) where.student_id = filters.student_id;
   if (filters.class_discipline_id) where.class_discipline_id = filters.class_discipline_id;
-  if (filters.final_average_status !== undefined) where.final_average_status = filters.final_average_status;
+
+  if (userRole === ROLES.TEACHER) {
+    where.final_average_status = FINAL_AVERAGE_STATUS.ACTIVE;
+  } else if (filters.final_average_status !== undefined) {
+    where.final_average_status = filters.final_average_status;
+  } else if (filters.includeDeleted !== true) {
+    where.final_average_status = { in: [FINAL_AVERAGE_STATUS.ACTIVE, FINAL_AVERAGE_STATUS.INACTIVE] };
+  }
 
   const averages = await finalAverageRepo.findAll(skip, limit, where);
   const total = await finalAverageRepo.count(where);
@@ -81,6 +88,9 @@ const getFinalAveragesByClassDiscipline = async (classDisciplineId, authToken) =
 const updateFinalAverage = async (id, updateData) => {
   const existing = await finalAverageRepo.findById(id);
   if (!existing) throw new Error(MESSAGES.FINAL_AVERAGE_NOT_FOUND);
+  if (existing.final_average_status === FINAL_AVERAGE_STATUS.DELETED) {
+    throw new Error(MESSAGES.CANNOT_EDIT_DELETED_FINAL_AVERAGE);
+  }
   const updated = await finalAverageRepo.update(id, updateData);
   return updated;
 };
@@ -92,6 +102,15 @@ const deleteFinalAverage = async (id) => {
   return true;
 };
 
+const restoreFinalAverage = async (id) => {
+  const existing = await finalAverageRepo.findById(id);
+  if (!existing) throw new Error(MESSAGES.FINAL_AVERAGE_NOT_FOUND);
+  if (existing.final_average_status !== FINAL_AVERAGE_STATUS.DELETED) {
+    throw new Error(MESSAGES.NOT_DELETED_CANNOT_RESTORE);
+  }
+  return await finalAverageRepo.restore(id);
+};
+
 module.exports = {
   createFinalAverage,
   calculateAndCreateFinalAverage,
@@ -100,5 +119,6 @@ module.exports = {
   getFinalAveragesByStudent,
   getFinalAveragesByClassDiscipline,
   updateFinalAverage,
-  deleteFinalAverage
+  deleteFinalAverage,
+  restoreFinalAverage
 };
