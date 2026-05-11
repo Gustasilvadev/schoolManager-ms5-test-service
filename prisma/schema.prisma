@@ -23,6 +23,7 @@ model grades {
   grade_status Int
   tests        tests @relation(fields: [test_id], references: [test_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_grades_key_1")
 
+  @@unique([student_id, grade_value], map: "unique")
   @@index([test_id], map: "fk_grades_key_1_idx")
 }
 
