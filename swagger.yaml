@@ -51,6 +51,7 @@ components:
         test_status:
           type: integer
           enum: [0, 1, 2]
+          description: "0 = INACTIVE | 1 = ACTIVE | 2 = DELETED (soft delete)"
           example: 1
 
     Grade:
@@ -72,6 +73,7 @@ components:
         grade_status:
           type: integer
           enum: [0, 1, 2]
+          description: "0 = INACTIVE | 1 = ACTIVE | 2 = DELETED (soft delete)"
           example: 1
 
     FinalAverage:
@@ -93,6 +95,7 @@ components:
         final_average_status:
           type: integer
           enum: [0, 1, 2]
+          description: "0 = INACTIVE | 1 = ACTIVE | 2 = DELETED (soft delete)"
           example: 1
 
     Error:
@@ -298,6 +301,7 @@ paths:
                   type: integer
                   default: 1
                   enum: [0, 1, 2]
+                  description: "Opcional. Padrão: 1 (ACTIVE) quando não informado. 0 = INACTIVE | 1 = ACTIVE | 2 = DELETED"
       responses:
         '201':
           description: Avaliação criada
@@ -552,6 +556,7 @@ paths:
                   type: integer
                   default: 1
                   enum: [0, 1, 2]
+                  description: "Opcional. Padrão: 1 (ACTIVE) quando não informado. 0 = INACTIVE | 1 = ACTIVE | 2 = DELETED"
       responses:
         '201':
           description: Nota lançada
@@ -599,6 +604,11 @@ paths:
                         type: integer
                       student_id:
                         type: integer
+                      grade_status:
+                        type: integer
+                        default: 1
+                        enum: [0, 1, 2]
+                        description: "Opcional. Padrão: 1 (ACTIVE) quando não informado."
       responses:
         '201':
           description: Notas lançadas
@@ -862,6 +872,7 @@ paths:
                   type: integer
                   default: 1
                   enum: [0, 1, 2]
+                  description: "Opcional. Padrão: 1 (ACTIVE) quando não informado. 0 = INACTIVE | 1 = ACTIVE | 2 = DELETED"
       responses:
         '201':
           description: Média final criada
@@ -877,6 +888,10 @@ paths:
       tags:
         - FinalAverages
       summary: Calcula e cria/atualiza a média final automaticamente com base nas notas lançadas
+      description: |
+        Se a média já existe para o par (studentId, classDisciplineId), ela é **atualizada** com o novo valor calculado e status ACTIVE (1).
+        Se não existe, é **criada** com status ACTIVE (1).
+        O valor é a média aritmética de todas as notas ativas lançadas para o aluno na disciplina/turma.
       security:
         - bearerAuth: []
       parameters:
@@ -892,13 +907,13 @@ paths:
             type: integer
       responses:
         '201':
-          description: Média final calculada
+          description: Média final calculada e criada/atualizada com status ACTIVE (1)
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/FinalAverage'
         '400':
-          description: Não há notas lançadas para calcular
+          description: "Não há notas lançadas para calcular a média"
         '404':
           description: Aluno ou disciplina/turma não encontrada
 

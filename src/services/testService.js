@@ -11,7 +11,10 @@ const ensureTeacherOwnsClassDiscipline = async (currentUser, classDisciplineId, 
 
 const createTest = async (data, currentUser = null, authToken = null) => {
   await ensureTeacherOwnsClassDiscipline(currentUser, data.class_discipline_id, authToken);
-  const newTest = await testRepo.create(data);
+  const newTest = await testRepo.create({
+    ...data,
+    test_status: data.test_status !== undefined ? data.test_status : TEST_STATUS.ACTIVE
+  });
   return newTest;
 };
 

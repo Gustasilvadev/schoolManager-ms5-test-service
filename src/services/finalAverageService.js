@@ -10,7 +10,10 @@ const createFinalAverage = async (data) => {
   );
   if (existing) throw new Error(MESSAGES.FINAL_AVERAGE_ALREADY_EXISTS);
 
-  const newFinalAverage = await finalAverageRepo.create(data);
+  const newFinalAverage = await finalAverageRepo.create({
+    ...data,
+    final_average_status: data.final_average_status !== undefined ? data.final_average_status : FINAL_AVERAGE_STATUS.ACTIVE
+  });
   return newFinalAverage;
 };
 
@@ -18,7 +21,7 @@ const calculateAndCreateFinalAverage = async (studentId, classDisciplineId) => {
   const grades = await gradeRepo.findByStudentAndClassDiscipline(studentId, classDisciplineId);
   
   if (grades.length === 0) {
-    throw new Error('Não há notas lançadas para calcular a média');
+    throw new Error(MESSAGES.NO_GRADES_FOR_AVERAGE);
   }
 
   const sum = grades.reduce((acc, grade) => acc + grade.grade_value, 0);

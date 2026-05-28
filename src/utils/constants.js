@@ -50,6 +50,7 @@ module.exports = {
     NOT_DELETED_CANNOT_RESTORE: 'O registro não está excluído',
     TEST_RESTORED: 'Avaliação restaurada com sucesso',
     GRADE_RESTORED: 'Nota restaurada com sucesso',
-    FINAL_AVERAGE_RESTORED: 'Média final restaurada com sucesso'
+    FINAL_AVERAGE_RESTORED: 'Média final restaurada com sucesso',
+    NO_GRADES_FOR_AVERAGE: 'Não há notas lançadas para calcular a média'
   }
 };

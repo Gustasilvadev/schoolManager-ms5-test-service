@@ -22,7 +22,7 @@ const calculateAndCreateFinalAverage = async (req, res, next) => {
     );
     return res.status(HTTP_STATUS.CREATED).json(result);
   } catch (error) {
-    if (error.message === 'Não há notas lançadas para calcular a média') {
+    if (error.message === MESSAGES.NO_GRADES_FOR_AVERAGE) {
       return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: error.message });
     }
     next(error);

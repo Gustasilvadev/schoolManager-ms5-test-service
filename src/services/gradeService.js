@@ -28,7 +28,7 @@ const createGrade = async (data, currentUser = null, authToken = null) => {
       grade_value: gradeValue,
       test_id: data.test_id,
       student_id: data.student_id,
-      grade_status: data.grade_status !== undefined ? data.grade_status : 1
+      grade_status: data.grade_status !== undefined ? data.grade_status : GRADE_STATUS.ACTIVE
     });
     return newGrade;
   } catch (err) {
@@ -61,7 +61,7 @@ const bulkCreateGrades = async (gradesData, currentUser = null, authToken = null
       grade_value: gradeValue,
       test_id: grade.test_id,
       student_id: grade.student_id,
-      grade_status: grade.grade_status !== undefined ? grade.grade_status : 1
+      grade_status: grade.grade_status !== undefined ? grade.grade_status : GRADE_STATUS.ACTIVE
     };
   });
 
